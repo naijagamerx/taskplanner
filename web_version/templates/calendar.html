@@ -586,8 +586,6 @@ function formatDateForDisplay(dateStr) {
 <style>
 .calendar-month {
     width: 100%;
-    max-height: 70vh;
-    overflow: hidden;
 }
 
 .calendar-header {
@@ -615,12 +613,10 @@ function formatDateForDisplay(dateStr) {
 
 .calendar-day {
     background-color: var(--bs-body-bg);
-    min-height: 80px;
-    max-height: 80px;
+    min-height: 120px;
     padding: 8px;
     cursor: pointer;
     transition: background-color 0.2s;
-    overflow: hidden;
 }
 
 .calendar-day:hover {

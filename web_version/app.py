@@ -539,8 +539,13 @@ def dashboard():
 
 @app.route('/calendar')
 def calendar():
-    """Calendar page"""
-    return render_template('calendar.html')
+    """Calendar page - using fixed version"""
+    return render_template('calendar_fixed.html')
+
+@app.route('/calendar-fixed')
+def calendar_fixed():
+    """Fixed calendar page with self-contained JavaScript"""
+    return render_template('calendar_fixed.html')
 
 @app.route('/recurring')
 def recurring():

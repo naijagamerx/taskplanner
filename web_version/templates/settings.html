@@ -1,0 +1,568 @@
+{% extends "base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<!-- Settings Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="bi bi-gear"></i> Settings</h2>
+            <button class="btn btn-success" id="saveAllSettings">
+                <i class="bi bi-check-circle"></i> Save All Settings
+            </button>
+        </div>
+        <!-- Success Message -->
+        <div id="settingsSuccessMessage" class="alert alert-success mt-3" style="display: none;">
+            <i class="bi bi-check-circle-fill"></i> Settings saved successfully!
+        </div>
+    </div>
+</div>
+
+<!-- Settings Container -->
+<div class="row">
+    <div class="col-md-3">
+        <!-- Settings Sidebar -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Settings Categories</h5>
+                <div class="list-group list-group-flush">
+                    <a href="#general" class="list-group-item list-group-item-action active settings-tab" data-tab="general">
+                        <i class="bi bi-gear"></i> General
+                    </a>
+                    <a href="#appearance" class="list-group-item list-group-item-action settings-tab" data-tab="appearance">
+                        <i class="bi bi-palette"></i> Appearance
+                    </a>
+                    <a href="#database" class="list-group-item list-group-item-action settings-tab" data-tab="database">
+                        <i class="bi bi-database"></i> Database
+                    </a>
+                    <a href="#categories" class="list-group-item list-group-item-action settings-tab" data-tab="categories">
+                        <i class="bi bi-tags"></i> Categories
+                    </a>
+                    <a href="#notifications" class="list-group-item list-group-item-action settings-tab" data-tab="notifications">
+                        <i class="bi bi-bell"></i> Notifications
+                    </a>
+                    <a href="#backup" class="list-group-item list-group-item-action settings-tab" data-tab="backup">
+                        <i class="bi bi-download"></i> Backup & Export
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <!-- Settings Content -->
+
+        <!-- Settings Content -->
+        <div class="card">
+            <div class="card-body">
+                <!-- General Settings -->
+                <div id="general-settings" class="settings-panel active">
+                    <h3><i class="bi bi-gear"></i> General Settings</h3>
+
+                    <div class="settings-section">
+                        <h3>Task Defaults</h3>
+                        <div class="form-group">
+                            <label for="defaultPriority">Default Task Priority:</label>
+                            <select id="defaultPriority" class="form-control">
+                                <option value="1">Low</option>
+                                <option value="2" selected>Medium</option>
+                                <option value="3">High</option>
+                                <option value="4">Critical</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="taskSortOrder">Default Task Sort Order:</label>
+                            <select id="taskSortOrder" class="form-control">
+                                <option value="due_date">Due Date</option>
+                                <option value="priority">Priority</option>
+                                <option value="created_at">Created Date</option>
+                                <option value="title">Title</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="showCompletedTasks" checked>
+                                <span class="checkmark"></span>
+                                Show completed tasks
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="autoMarkOverdue" checked>
+                                <span class="checkmark"></span>
+                                Automatically mark overdue tasks
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Date & Time</h3>
+                        <div class="form-group">
+                            <label for="dateFormat">Date Format:</label>
+                            <select id="dateFormat" class="form-control">
+                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                <option value="DD-MM-YYYY">DD-MM-YYYY</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="weekStartsOn">Week starts on:</label>
+                            <select id="weekStartsOn" class="form-control">
+                                <option value="sunday">Sunday</option>
+                                <option value="monday" selected>Monday</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Appearance Settings -->
+                <div id="appearance-settings" class="settings-panel" style="display: none;">
+                    <h3><i class="bi bi-palette"></i> Appearance Settings</h3>
+
+                    <div class="settings-section">
+                        <h3>Theme</h3>
+                        <div class="theme-selector">
+                            <div class="theme-option" data-theme="light">
+                                <div class="theme-preview light-theme">
+                                    <div class="theme-header"></div>
+                                    <div class="theme-content"></div>
+                                </div>
+                                <label>
+                                    <input type="radio" name="theme" value="light" checked>
+                                    Light Theme
+                                </label>
+                            </div>
+
+                            <div class="theme-option" data-theme="dark">
+                                <div class="theme-preview dark-theme">
+                                    <div class="theme-header"></div>
+                                    <div class="theme-content"></div>
+                                </div>
+                                <label>
+                                    <input type="radio" name="theme" value="dark">
+                                    Dark Theme
+                                </label>
+                            </div>
+
+                            <div class="theme-option" data-theme="auto">
+                                <div class="theme-preview auto-theme">
+                                    <div class="theme-header"></div>
+                                    <div class="theme-content"></div>
+                                </div>
+                                <label>
+                                    <input type="radio" name="theme" value="auto">
+                                    Auto (System)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Color Scheme</h3>
+                        <div class="color-scheme-selector">
+                            <div class="color-option" data-color="blue">
+                                <div class="color-preview" style="background: #007bff;"></div>
+                                <span>Blue</span>
+                            </div>
+                            <div class="color-option" data-color="green">
+                                <div class="color-preview" style="background: #28a745;"></div>
+                                <span>Green</span>
+                            </div>
+                            <div class="color-option" data-color="purple">
+                                <div class="color-preview" style="background: #6f42c1;"></div>
+                                <span>Purple</span>
+                            </div>
+                            <div class="color-option" data-color="orange">
+                                <div class="color-preview" style="background: #fd7e14;"></div>
+                                <span>Orange</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Display Options</h3>
+                        <div class="form-group">
+                            <label for="fontSize">Font Size:</label>
+                            <select id="fontSize" class="form-control">
+                                <option value="small">Small</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="large">Large</option>
+                                <option value="extra-large">Extra Large</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="compactMode">
+                                <span class="checkmark"></span>
+                                Compact mode
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="showAnimations" checked>
+                                <span class="checkmark"></span>
+                                Enable animations
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database Settings -->
+                <div id="database-settings" class="settings-panel" style="display: none;">
+                    <h3><i class="bi bi-database"></i> Database Settings</h3>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="bi bi-info-circle"></i> Current Database Connection</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <span class="badge bg-success me-2">
+                                            <i class="bi bi-check-circle"></i> Connected to SQLite Database
+                                        </span>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Type:</strong> <span id="dbType">SQLite</span></p>
+                                            <p><strong>Location:</strong> <span id="dbLocation">C:\xampp\htdocs\tasksplanner\web_version\task_planner.db</span></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Size:</strong> <span id="dbSize">0.15 MB</span></p>
+                                            <p><strong>Last Modified:</strong> <span id="dbLastModified">2025-05-27 08:46:16</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="bi bi-tools"></i> Database Actions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <button class="btn btn-outline-primary" id="testConnection">
+                                            <i class="bi bi-plug"></i> Test Connection
+                                        </button>
+                                        <button class="btn btn-outline-warning" id="optimizeDatabase">
+                                            <i class="bi bi-gear"></i> Optimize Database
+                                        </button>
+                                        <button class="btn btn-outline-info" id="exportDatabase">
+                                            <i class="bi bi-download"></i> Export Database
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="bi bi-gear"></i> Database Configuration</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle"></i>
+                                        <strong>Note:</strong> For online deployment, configure MySQL database with your hosting provider's database details. For local development, SQLite works fine.
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="dbTypeSelect" class="form-label">Database Type:</label>
+                                        <select id="dbTypeSelect" class="form-select">
+                                            <option value="sqlite" selected>SQLite</option>
+                                            <option value="mysql">MySQL</option>
+                                        </select>
+                                    </div>
+
+                                    <div id="mysqlConfig" style="display: none;">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="dbHost" class="form-label">Host:</label>
+                                                    <input type="text" id="dbHost" class="form-control" value="localhost" placeholder="e.g., your-server.com or localhost">
+                                                    <small class="form-text text-muted">For online deployment, use your hosting provider's database host</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="dbPort" class="form-label">Port:</label>
+                                                    <input type="number" id="dbPort" class="form-control" value="3306" placeholder="3306">
+                                                    <small class="form-text text-muted">Default MySQL port is 3306</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="dbName" class="form-label">Database Name:</label>
+                                                    <input type="text" id="dbName" class="form-control" value="task_planner" placeholder="task_planner">
+                                                    <small class="form-text text-muted">Name of your MySQL database</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="dbUser" class="form-label">Username:</label>
+                                                    <input type="text" id="dbUser" class="form-control" value="root" placeholder="database_user">
+                                                    <small class="form-text text-muted">Your database username</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="dbPassword" class="form-label">Password:</label>
+                                            <input type="password" id="dbPassword" class="form-control" placeholder="Enter database password">
+                                            <small class="form-text text-muted">Your database password (leave empty if no password)</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end mt-3">
+                                        <button type="button" class="btn btn-success" id="saveDatabaseConfig">
+                                            <i class="bi bi-check-circle"></i> Save Database Configuration
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Categories Settings -->
+                <div id="categories-settings" class="settings-panel" style="display: none;">
+                    <h3><i class="bi bi-tags"></i> Categories Management</h3>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="bi bi-plus-circle"></i> Add New Category</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="newCategoryName" class="form-label">Category Name:</label>
+                                        <input type="text" class="form-control" id="newCategoryName" placeholder="Enter category name">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="newCategoryColor" class="form-label">Color:</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="color" class="form-control form-control-color me-2" id="newCategoryColor" value="#3498db" style="width: 60px;">
+                                            <input type="text" class="form-control" id="newCategoryColorText" value="#3498db" placeholder="#3498db">
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="newCategoryDescription" class="form-label">Description (Optional):</label>
+                                        <textarea class="form-control" id="newCategoryDescription" rows="2" placeholder="Enter category description"></textarea>
+                                    </div>
+                                    <button type="button" class="btn btn-primary" id="addCategoryBtn">
+                                        <i class="bi bi-plus-circle"></i> Add Category
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="bi bi-list"></i> Existing Categories</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="categoriesList" class="categories-list">
+                                        <!-- Categories will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Settings -->
+                <div id="notifications-settings" class="settings-panel" style="display: none;">
+                    <h3><i class="bi bi-bell"></i> Notification Settings</h3>
+
+                    <div class="settings-section">
+                        <h3>Browser Notifications</h3>
+                        <div class="notification-status">
+                            <div class="status-indicator">
+                                <span class="status-dot" id="notificationStatus"></span>
+                                <span class="status-text" id="notificationStatusText">Checking permissions...</span>
+                            </div>
+                            <button class="btn btn-primary" id="requestNotificationPermission" style="display: none;">
+                                <i class="fas fa-bell"></i> Enable Notifications
+                            </button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="browserNotificationsEnabled" checked>
+                                <span class="checkmark"></span>
+                                Enable browser notifications
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="soundAlertsEnabled" checked>
+                                <span class="checkmark"></span>
+                                Enable sound alerts
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Reminder Settings</h3>
+                        <div class="form-group">
+                            <label for="reminderMinutes">Remind me before task due time:</label>
+                            <select id="reminderMinutes" class="form-control">
+                                <option value="5">5 minutes</option>
+                                <option value="15" selected>15 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="120">2 hours</option>
+                                <option value="1440">1 day</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notificationCheckInterval">Check for notifications every:</label>
+                            <select id="notificationCheckInterval" class="form-control">
+                                <option value="30">30 seconds</option>
+                                <option value="60" selected>1 minute</option>
+                                <option value="300">5 minutes</option>
+                                <option value="600">10 minutes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Notification Types</h3>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="taskDueNotifications" checked>
+                                <span class="checkmark"></span>
+                                Task due reminders
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="overdueNotifications" checked>
+                                <span class="checkmark"></span>
+                                Overdue task alerts
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="completionNotifications" checked>
+                                <span class="checkmark"></span>
+                                Task completion confirmations
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="dailySummaryNotifications">
+                                <span class="checkmark"></span>
+                                Daily task summary
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Test Notifications</h3>
+                        <div class="notification-test">
+                            <button class="btn btn-secondary" id="testNotification">
+                                <i class="fas fa-bell"></i> Send Test Notification
+                            </button>
+                            <button class="btn btn-secondary" id="testSoundAlert">
+                                <i class="fas fa-volume-up"></i> Test Sound Alert
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backup & Export Settings -->
+                <div id="backup-settings" class="settings-panel" style="display: none;">
+                    <h3><i class="bi bi-download"></i> Backup & Export</h3>
+
+                    <div class="settings-section">
+                        <h3>Export Data</h3>
+                        <div class="export-options">
+                            <button class="btn btn-primary" id="exportTasks">
+                                <i class="fas fa-file-export"></i> Export Tasks (JSON)
+                            </button>
+                            <button class="btn btn-primary" id="exportTasksCSV">
+                                <i class="fas fa-file-csv"></i> Export Tasks (CSV)
+                            </button>
+                            <button class="btn btn-primary" id="exportCategories">
+                                <i class="fas fa-tags"></i> Export Categories
+                            </button>
+                            <button class="btn btn-primary" id="exportSettings">
+                                <i class="fas fa-cog"></i> Export Settings
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Import Data</h3>
+                        <div class="import-options">
+                            <div class="form-group">
+                                <label for="importFile">Import from file:</label>
+                                <input type="file" id="importFile" class="form-control" accept=".json,.csv">
+                                <small class="form-text">Supported formats: JSON, CSV</small>
+                            </div>
+                            <button class="btn btn-success" id="importData">
+                                <i class="fas fa-file-import"></i> Import Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>Backup Settings</h3>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="autoBackupEnabled">
+                                <span class="checkmark"></span>
+                                Enable automatic backups
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="backupFrequency">Backup frequency:</label>
+                            <select id="backupFrequency" class="form-control">
+                                <option value="daily">Daily</option>
+                                <option value="weekly" selected>Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="maxBackupFiles">Maximum backup files to keep:</label>
+                            <input type="number" id="maxBackupFiles" class="form-control" value="10" min="1" max="50">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+{% endblock %}

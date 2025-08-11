@@ -1,0 +1,1036 @@
+{% extends "base.html" %}
+
+{% block title %}Task Planner Web - Recurring Tasks{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="bi bi-arrow-repeat"></i> Recurring Tasks</h2>
+            <button class="btn btn-primary" id="addRecurringTaskBtn" onclick="showAddTaskModal(); setTimeout(() => { document.getElementById('taskIsRecurring').checked = true; document.getElementById('recurringOptions').style.display = 'block'; document.getElementById('taskModalTitle').innerHTML = '<i class=&quot;bi bi-plus-circle&quot;></i> Add New Recurring Task'; }, 100);">
+                <i class="bi bi-plus-circle"></i> Add Recurring Task
+            </button>
+        </div>
+        <p class="text-muted">Manage your recurring tasks and their schedules</p>
+    </div>
+</div>
+
+<!-- Recurring Tasks Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-primary" id="totalRecurringTasks">0</h5>
+                <p class="card-text">Total Recurring</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-success" id="activeRecurringTasks">0</h5>
+                <p class="card-text">Active</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-warning" id="dailyRecurringTasks">0</h5>
+                <p class="card-text">Daily</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-info" id="weeklyRecurringTasks">0</h5>
+                <p class="card-text">Weekly</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <select class="form-select" id="patternFilter">
+                            <option value="">All Patterns</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="categoryFilter">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-secondary w-100" id="clearFilters">
+                            <i class="bi bi-x-circle"></i> Clear Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recurring Tasks List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-list-task"></i> Recurring Tasks
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading recurring tasks...</span>
+                    </div>
+                    <div class="mt-2">Loading recurring tasks...</div>
+                </div>
+
+                <!-- Recurring Tasks Container -->
+                <div id="recurringTasksContainer" style="display: none;">
+                    <!-- Recurring tasks will be dynamically loaded here -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="text-center py-5" style="display: none;">
+                    <i class="bi bi-arrow-repeat display-1 text-muted"></i>
+                    <h4 class="text-muted mt-3">No recurring tasks found</h4>
+                    <p class="text-muted">Create your first recurring task to automate your routine!</p>
+                    <button class="btn btn-primary" id="addFirstRecurringTaskBtn" onclick="showAddTaskModal(); setTimeout(() => { document.getElementById('taskIsRecurring').checked = true; document.getElementById('recurringOptions').style.display = 'block'; document.getElementById('taskModalTitle').innerHTML = '<i class=&quot;bi bi-plus-circle&quot;></i> Add New Recurring Task'; }, 100);">
+                        <i class="bi bi-plus-circle"></i> Add Your First Recurring Task
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Next Occurrences Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-calendar-event"></i> Upcoming Occurrences
+                </h5>
+                <div class="d-flex align-items-center gap-2">
+                    <small class="text-muted">Items per page:</small>
+                    <select id="occurrencesPerPage" class="form-select form-select-sm" style="width: auto;">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="upcomingOccurrences">
+                    <!-- Upcoming occurrences will be loaded here -->
+                </div>
+
+                <!-- Pagination Controls -->
+                <div id="occurrencesPagination" class="d-flex justify-content-between align-items-center mt-3" style="display: none;">
+                    <div class="d-flex align-items-center gap-2">
+                        <small class="text-muted" id="occurrencesInfo">Showing 1-10 of 14 occurrences</small>
+                    </div>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-outline-secondary" id="prevOccurrences" disabled>
+                            <i class="bi bi-chevron-left"></i> Previous
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" id="nextOccurrences">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Simple global function for opening recurring task modal
+function openRecurringTaskModal() {
+    console.log('openRecurringTaskModal called');
+
+    // Find the task modal
+    const taskModal = document.getElementById('taskModal');
+    if (!taskModal) {
+        console.error('Task modal not found');
+        alert('Task modal not found. Please refresh the page and try again.');
+        return;
+    }
+
+    // Clear the form
+    try {
+        document.getElementById('taskId').value = '';
+        document.getElementById('taskTitle').value = '';
+        document.getElementById('taskDescription').value = '';
+        document.getElementById('taskCategory').value = '';
+        document.getElementById('taskPriority').value = '2';
+        document.getElementById('taskDueDate').value = '';
+        document.getElementById('taskDueTime').value = '';
+        document.getElementById('taskDuration').value = '';
+        document.getElementById('taskStatus').value = 'pending';
+
+        // Set recurring options
+        const recurringCheckbox = document.getElementById('taskIsRecurring');
+        if (recurringCheckbox) {
+            recurringCheckbox.checked = true;
+        }
+
+        document.getElementById('taskRecurrencePattern').value = 'daily';
+        document.getElementById('taskRecurrenceInterval').value = '1';
+        document.getElementById('taskRecurrenceEndDate').value = '';
+
+        // Show recurring options
+        const recurringOptions = document.getElementById('recurringOptions');
+        if (recurringOptions) {
+            recurringOptions.style.display = 'block';
+        }
+
+        console.log('Form cleared and recurring options set');
+    } catch (error) {
+        console.error('Error setting form values:', error);
+    }
+
+    // Set modal title
+    try {
+        document.getElementById('taskModalTitle').innerHTML = '<i class="bi bi-plus-circle"></i> Add New Recurring Task';
+    } catch (error) {
+        console.error('Error setting modal title:', error);
+    }
+
+    // Show the modal
+    try {
+        const modal = new bootstrap.Modal(taskModal);
+        modal.show();
+        console.log('Modal shown successfully');
+    } catch (error) {
+        console.error('Error showing modal:', error);
+        alert('Error opening modal. Please refresh the page and try again.');
+    }
+}
+
+// Simple recurring tasks implementation
+let currentRecurringTasks = [];
+let allUpcomingOccurrences = [];
+let currentOccurrencePage = 1;
+let occurrencesPerPage = 10;
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔄 Recurring tasks page loading...');
+
+    // Simple initialization
+    setTimeout(() => {
+        loadRecurringTasksSimple();
+        setupOccurrencesPagination();
+    }, 1000);
+});
+
+// Simple function to load recurring tasks
+async function loadRecurringTasksSimple() {
+    console.log('📥 Loading recurring tasks...');
+
+    try {
+        const response = await fetch('/api/tasks/recurring');
+        const data = await response.json();
+        console.log('📊 API Response:', data);
+
+        if (response.ok && data.tasks) {
+            currentRecurringTasks = data.tasks;
+            console.log(`✅ Found ${currentRecurringTasks.length} recurring tasks`);
+
+            // Update stats
+            updateStatsSimple();
+
+            // Render tasks
+            renderTasksSimple();
+
+            // Generate upcoming occurrences
+            generateUpcomingOccurrencesSimple();
+
+        } else {
+            console.error('❌ API Error:', data);
+        }
+    } catch (error) {
+        console.error('❌ Fetch Error:', error);
+    }
+}
+
+// Simple stats update
+function updateStatsSimple() {
+    const total = currentRecurringTasks.length;
+    const active = currentRecurringTasks.filter(t => t.status !== 'completed').length;
+    const daily = currentRecurringTasks.filter(t => t.recurrence_pattern === 'daily').length;
+    const weekly = currentRecurringTasks.filter(t => t.recurrence_pattern === 'weekly').length;
+
+    console.log(`📈 Stats: Total=${total}, Active=${active}, Daily=${daily}, Weekly=${weekly}`);
+
+    // Update DOM
+    const totalEl = document.getElementById('totalRecurringTasks');
+    const activeEl = document.getElementById('activeRecurringTasks');
+    const dailyEl = document.getElementById('dailyRecurringTasks');
+    const weeklyEl = document.getElementById('weeklyRecurringTasks');
+
+    if (totalEl) totalEl.textContent = total;
+    if (activeEl) activeEl.textContent = active;
+    if (dailyEl) dailyEl.textContent = daily;
+    if (weeklyEl) weeklyEl.textContent = weekly;
+
+    console.log('📈 Stats updated in DOM');
+}
+
+// Simple task rendering
+function renderTasksSimple() {
+    console.log('🎨 Rendering tasks...');
+
+    const container = document.getElementById('recurringTasksContainer');
+    const emptyState = document.getElementById('emptyState');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    // Hide loading spinner
+    if (loadingSpinner) loadingSpinner.style.display = 'none';
+
+    if (currentRecurringTasks.length === 0) {
+        if (container) container.style.display = 'none';
+        if (emptyState) emptyState.style.display = 'block';
+        console.log('📭 Showing empty state');
+        return;
+    }
+
+    if (container) {
+        container.style.display = 'block';
+        if (emptyState) emptyState.style.display = 'none';
+
+        // Create simple task cards
+        container.innerHTML = currentRecurringTasks.map(task => createSimpleTaskCard(task)).join('');
+        console.log('🎨 Tasks rendered successfully');
+    }
+}
+
+// Simple task card creation
+function createSimpleTaskCard(task) {
+    const priorityColors = { 1: '#95a5a6', 2: '#f39c12', 3: '#e74c3c', 4: '#8e44ad' };
+    const priorityNames = { 1: 'Low', 2: 'Medium', 3: 'High', 4: 'Critical' };
+
+    const priorityColor = priorityColors[task.priority_id] || '#f39c12';
+    const priorityName = priorityNames[task.priority_id] || 'Medium';
+    const categoryColor = task.category_color || '#6c757d';
+    const categoryName = task.category_name || 'No Category';
+
+    const patternText = task.recurrence_pattern.charAt(0).toUpperCase() + task.recurrence_pattern.slice(1);
+    const statusText = task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ');
+
+    return `
+        <div class="card mb-3" style="border-left: 4px solid ${priorityColor};">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="card-title mb-1">
+                        <i class="bi bi-arrow-repeat text-primary"></i>
+                        ${task.title}
+                    </h6>
+                    <span class="badge" style="background-color: ${priorityColor};">${priorityName}</span>
+                </div>
+
+                ${task.description ? `<p class="card-text text-muted small">${task.description}</p>` : ''}
+
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                    <span class="badge bg-secondary">${statusText}</span>
+                    <span class="badge" style="background-color: ${categoryColor};">${categoryName}</span>
+                    <span class="badge bg-info">${patternText} (Every ${task.recurrence_interval})</span>
+                </div>
+
+                <div class="small text-muted">
+                    <div><i class="bi bi-calendar-repeat"></i> Repeats: ${patternText}</div>
+                    ${task.due_date ? `<div><i class="bi bi-calendar"></i> Due: ${new Date(task.due_date).toLocaleDateString()}</div>` : ''}
+                    ${task.recurrence_end_date ? `<div><i class="bi bi-calendar-x"></i> End: ${new Date(task.recurrence_end_date).toLocaleDateString()}</div>` : '<div><i class="bi bi-calendar-x"></i> No end date</div>'}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Setup pagination event listeners
+function setupOccurrencesPagination() {
+    console.log('🔧 Setting up occurrences pagination...');
+
+    // Items per page selector
+    const perPageSelect = document.getElementById('occurrencesPerPage');
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            occurrencesPerPage = parseInt(this.value);
+            currentOccurrencePage = 1;
+            renderOccurrencesPage();
+            console.log(`📄 Changed to ${occurrencesPerPage} items per page`);
+        });
+    }
+
+    // Previous button
+    const prevBtn = document.getElementById('prevOccurrences');
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function() {
+            if (currentOccurrencePage > 1) {
+                currentOccurrencePage--;
+                renderOccurrencesPage();
+                console.log(`📄 Moved to page ${currentOccurrencePage}`);
+            }
+        });
+    }
+
+    // Next button
+    const nextBtn = document.getElementById('nextOccurrences');
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            const totalPages = Math.ceil(allUpcomingOccurrences.length / occurrencesPerPage);
+            if (currentOccurrencePage < totalPages) {
+                currentOccurrencePage++;
+                renderOccurrencesPage();
+                console.log(`📄 Moved to page ${currentOccurrencePage}`);
+            }
+        });
+    }
+
+    console.log('✅ Pagination setup complete');
+}
+
+// Simple upcoming occurrences generation
+function generateUpcomingOccurrencesSimple() {
+    console.log('📅 Generating upcoming occurrences...');
+
+    const container = document.getElementById('upcomingOccurrences');
+    if (!container) {
+        console.error('❌ upcomingOccurrences container not found');
+        return;
+    }
+
+    allUpcomingOccurrences = [];
+    const today = new Date();
+
+    // Generate next 14 days of occurrences for each active recurring task (more data for pagination)
+    currentRecurringTasks.forEach(task => {
+        if (task.status === 'completed') {
+            console.log(`⏭️ Skipping completed task: ${task.title}`);
+            return;
+        }
+
+        console.log(`🔍 Checking task: ${task.title} (${task.recurrence_pattern})`);
+
+        for (let i = 0; i < 14; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+
+            if (shouldTaskOccurOnDateSimple(task, date)) {
+                allUpcomingOccurrences.push({
+                    ...task,
+                    occurrence_date: date
+                });
+                console.log(`✅ Added occurrence for ${task.title} on ${date.toLocaleDateString()}`);
+            }
+        }
+    });
+
+    // Sort by date
+    allUpcomingOccurrences.sort((a, b) => a.occurrence_date - b.occurrence_date);
+    console.log(`📅 Found ${allUpcomingOccurrences.length} upcoming occurrences`);
+
+    if (allUpcomingOccurrences.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center">No upcoming occurrences in the next 14 days.</p>';
+        document.getElementById('occurrencesPagination').style.display = 'none';
+        console.log('📭 No upcoming occurrences to display');
+        return;
+    }
+
+    // Reset to first page and render
+    currentOccurrencePage = 1;
+    renderOccurrencesPage();
+
+    console.log('📅 Upcoming occurrences generated successfully');
+}
+
+// Render current page of occurrences
+function renderOccurrencesPage() {
+    console.log(`📄 Rendering occurrences page ${currentOccurrencePage}`);
+
+    const container = document.getElementById('upcomingOccurrences');
+    const pagination = document.getElementById('occurrencesPagination');
+    const info = document.getElementById('occurrencesInfo');
+    const prevBtn = document.getElementById('prevOccurrences');
+    const nextBtn = document.getElementById('nextOccurrences');
+
+    if (!container || allUpcomingOccurrences.length === 0) {
+        return;
+    }
+
+    // Calculate pagination
+    const totalItems = allUpcomingOccurrences.length;
+    const totalPages = Math.ceil(totalItems / occurrencesPerPage);
+    const startIndex = (currentOccurrencePage - 1) * occurrencesPerPage;
+    const endIndex = Math.min(startIndex + occurrencesPerPage, totalItems);
+    const currentPageItems = allUpcomingOccurrences.slice(startIndex, endIndex);
+
+    console.log(`📊 Page ${currentOccurrencePage}/${totalPages}: showing ${startIndex + 1}-${endIndex} of ${totalItems}`);
+
+    // Render items
+    const priorityColors = { 1: '#95a5a6', 2: '#f39c12', 3: '#e74c3c', 4: '#8e44ad' };
+    const priorityNames = { 1: 'Low', 2: 'Medium', 3: 'High', 4: 'Critical' };
+
+    container.innerHTML = currentPageItems.map(task => {
+        const priorityName = priorityNames[task.priority_id] || 'Medium';
+        const priorityColor = priorityColors[task.priority_id] || '#f39c12';
+        const patternText = task.recurrence_pattern.charAt(0).toUpperCase() + task.recurrence_pattern.slice(1);
+
+        return `
+            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                <div>
+                    <strong>${task.title}</strong>
+                    <div class="small text-muted">${patternText} (Every ${task.recurrence_interval})</div>
+                </div>
+                <div class="text-end">
+                    <div class="small">${task.occurrence_date.toLocaleDateString()}</div>
+                    <span class="badge" style="background-color: ${priorityColor};">${priorityName}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Update pagination info and controls
+    if (info) {
+        info.textContent = `Showing ${startIndex + 1}-${endIndex} of ${totalItems} occurrences`;
+    }
+
+    if (prevBtn) {
+        prevBtn.disabled = currentOccurrencePage <= 1;
+    }
+
+    if (nextBtn) {
+        nextBtn.disabled = currentOccurrencePage >= totalPages;
+    }
+
+    // Show pagination if more than one page
+    if (pagination) {
+        pagination.style.display = totalPages > 1 ? 'flex' : 'none';
+    }
+
+    console.log('📄 Page rendered successfully');
+}
+
+// Simple function to check if a task should occur on a specific date
+function shouldTaskOccurOnDateSimple(task, date) {
+    const pattern = task.recurrence_pattern;
+    const interval = parseInt(task.recurrence_interval) || 1;
+
+    // For daily tasks, they occur every day (or every N days)
+    if (pattern === 'daily') {
+        // For simplicity, let's say daily tasks occur every day
+        // In a real implementation, you'd calculate based on the start date and interval
+        return true;
+    }
+
+    // For weekly tasks, they occur on the same day of the week
+    if (pattern === 'weekly') {
+        // For simplicity, let's say weekly tasks occur on the same day of the week as today
+        const today = new Date();
+        return date.getDay() === today.getDay();
+    }
+
+    // For monthly tasks, they occur on the same day of the month
+    if (pattern === 'monthly') {
+        const today = new Date();
+        return date.getDate() === today.getDate();
+    }
+
+    // For yearly tasks, they occur on the same date each year
+    if (pattern === 'yearly') {
+        const today = new Date();
+        return date.getDate() === today.getDate() && date.getMonth() === today.getMonth();
+    }
+
+    return false;
+}
+
+async function loadRecurringTasks() {
+    console.log('Loading recurring tasks...');
+    try {
+        showRecurringLoading(true);
+        const response = await fetch('/api/tasks/recurring');
+        const data = await response.json();
+        console.log('Recurring tasks API response:', data);
+
+        if (response.ok) {
+            currentRecurringTasks = data.tasks || [];
+            console.log('Found', currentRecurringTasks.length, 'recurring tasks');
+            renderRecurringTasks(currentRecurringTasks);
+            updateRecurringStats();
+            generateUpcomingOccurrences();
+        } else {
+            console.error('API error:', data.error);
+            alert('Failed to load recurring tasks: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error loading recurring tasks:', error);
+        alert('Error loading recurring tasks: ' + error.message);
+    } finally {
+        showRecurringLoading(false);
+    }
+}
+
+function renderRecurringTasks(tasks) {
+    console.log('Rendering recurring tasks:', tasks.length);
+    const container = document.getElementById('recurringTasksContainer');
+    const emptyState = document.getElementById('emptyState');
+
+    if (!container || !emptyState) {
+        console.error('Required elements not found:', { container, emptyState });
+        return;
+    }
+
+    // Apply current filters
+    const filteredTasks = applyRecurringCurrentFilters(tasks);
+    console.log('Filtered tasks:', filteredTasks.length);
+
+    if (filteredTasks.length === 0) {
+        container.style.display = 'none';
+        emptyState.style.display = 'block';
+        console.log('Showing empty state');
+        return;
+    }
+
+    container.style.display = 'block';
+    emptyState.style.display = 'none';
+
+    try {
+        container.innerHTML = filteredTasks.map(task => createRecurringTaskHTML(task)).join('');
+        console.log('Tasks rendered successfully');
+
+        // Add event listeners
+        addRecurringTaskEventListeners();
+    } catch (error) {
+        console.error('Error rendering tasks:', error);
+        container.innerHTML = '<div class="alert alert-danger">Error rendering tasks: ' + error.message + '</div>';
+    }
+}
+
+function createRecurringTaskHTML(task) {
+    // Simple helper functions
+    const escapeHtml = (text) => {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    };
+
+    const priorityColors = {
+        1: '#95a5a6', // Low - Gray
+        2: '#f39c12', // Medium - Orange
+        3: '#e74c3c', // High - Red
+        4: '#8e44ad'  // Critical - Purple
+    };
+
+    const priorityNames = {
+        1: 'Low',
+        2: 'Medium',
+        3: 'High',
+        4: 'Critical'
+    };
+
+    const priorityName = priorityNames[task.priority_id] || 'Medium';
+    const priorityColor = priorityColors[task.priority_id] || '#f39c12';
+    const categoryName = task.category_name || '';
+    const patternText = formatRecurrencePattern(task.recurrence_pattern, task.recurrence_interval);
+    const endDate = task.recurrence_end_date ? new Date(task.recurrence_end_date).toLocaleDateString() : 'No end date';
+    const statusText = task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('_', ' ');
+
+    return `
+        <div class="card mb-3 recurring-task-card" data-task-id="${task.id}" style="border-left: 4px solid ${priorityColor};">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="card-title mb-1">
+                        <i class="bi bi-arrow-repeat text-primary"></i>
+                        ${escapeHtml(task.title)}
+                    </h6>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item edit-recurring-task" href="#" data-task-id="${task.id}">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a></li>
+                            <li><a class="dropdown-item toggle-recurring-status" href="#" data-task-id="${task.id}">
+                                <i class="bi bi-check-circle"></i> ${task.status === 'completed' ? 'Mark Pending' : 'Mark Complete'}
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger delete-recurring-task" href="#" data-task-id="${task.id}">
+                                <i class="bi bi-trash"></i> Delete
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                ${task.description ? `<p class="card-text text-muted small">${escapeHtml(task.description)}</p>` : ''}
+
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                    <span class="badge" style="background-color: ${priorityColor};">${priorityName}</span>
+                    <span class="badge bg-secondary">${statusText}</span>
+                    ${categoryName ? `<span class="badge" style="background-color: ${task.category_color || '#6c757d'};">${categoryName}</span>` : ''}
+                    <span class="badge bg-info">${patternText}</span>
+                </div>
+
+                <div class="small text-muted">
+                    <div><i class="bi bi-calendar-repeat"></i> Repeats: ${patternText}</div>
+                    <div><i class="bi bi-calendar-x"></i> End Date: ${endDate}</div>
+                    ${task.estimated_duration ? `<div><i class="bi bi-clock"></i> Duration: ${task.estimated_duration} minutes</div>` : ''}
+                    ${task.due_date ? `<div><i class="bi bi-calendar"></i> Due: ${new Date(task.due_date).toLocaleDateString()}</div>` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function formatRecurrencePattern(pattern, interval) {
+    const intervalText = interval > 1 ? `Every ${interval}` : 'Every';
+
+    switch (pattern) {
+        case 'daily':
+            return interval > 1 ? `${intervalText} days` : 'Daily';
+        case 'weekly':
+            return interval > 1 ? `${intervalText} weeks` : 'Weekly';
+        case 'monthly':
+            return interval > 1 ? `${intervalText} months` : 'Monthly';
+        case 'yearly':
+            return interval > 1 ? `${intervalText} years` : 'Yearly';
+        default:
+            return pattern || 'Unknown';
+    }
+}
+
+function addRecurringTaskEventListeners() {
+    // Edit recurring task buttons
+    document.querySelectorAll('.edit-recurring-task').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const taskId = parseInt(this.dataset.taskId);
+            editRecurringTask(taskId);
+        });
+    });
+
+    // Toggle status buttons
+    document.querySelectorAll('.toggle-recurring-status').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const taskId = parseInt(this.dataset.taskId);
+            if (typeof toggleTaskStatus === 'function') {
+                toggleTaskStatus(taskId);
+            } else {
+                console.log('toggleTaskStatus function not available');
+                alert('Toggle status functionality not available. Please refresh the page and try again.');
+            }
+        });
+    });
+
+    // Delete recurring task buttons
+    document.querySelectorAll('.delete-recurring-task').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const taskId = parseInt(this.dataset.taskId);
+            deleteRecurringTask(taskId);
+        });
+    });
+}
+
+function clearTaskForm() {
+    // Clear all form fields
+    document.getElementById('taskId').value = '';
+    document.getElementById('taskTitle').value = '';
+    document.getElementById('taskDescription').value = '';
+    document.getElementById('taskCategory').value = '';
+    document.getElementById('taskPriority').value = '2';
+    document.getElementById('taskDueDate').value = '';
+    document.getElementById('taskDueTime').value = '';
+    document.getElementById('taskDuration').value = '';
+    document.getElementById('taskStatus').value = 'pending';
+    document.getElementById('taskIsRecurring').checked = false;
+    document.getElementById('taskRecurrencePattern').value = 'daily';
+    document.getElementById('taskRecurrenceInterval').value = '1';
+    document.getElementById('taskRecurrenceEndDate').value = '';
+
+    // Hide recurring options
+    const recurringOptions = document.getElementById('recurringOptions');
+    if (recurringOptions) {
+        recurringOptions.style.display = 'none';
+    }
+}
+
+function showAddRecurringTaskModal() {
+    console.log('showAddRecurringTaskModal called');
+
+    // Pre-check the recurring checkbox and show options
+    const recurringCheckbox = document.getElementById('taskIsRecurring');
+    if (recurringCheckbox) {
+        recurringCheckbox.checked = true;
+        console.log('Recurring checkbox checked');
+    }
+
+    // Show/hide recurring options
+    const recurringOptions = document.getElementById('recurringOptions');
+    if (recurringOptions) {
+        recurringOptions.style.display = 'block';
+        console.log('Recurring options shown');
+    }
+
+    // Show the task modal
+    try {
+        if (typeof showAddTaskModal === 'function') {
+            console.log('Calling global showAddTaskModal');
+            showAddTaskModal();
+        } else {
+            console.log('Global showAddTaskModal not found, showing modal directly');
+            const taskModal = document.getElementById('taskModal');
+            if (taskModal) {
+                // Clear the form first
+                clearTaskForm();
+                document.getElementById('taskModalTitle').innerHTML = '<i class="bi bi-plus-circle"></i> Add New Recurring Task';
+                const modal = new bootstrap.Modal(taskModal);
+                modal.show();
+                console.log('Modal shown directly');
+            } else {
+                console.error('Task modal not found');
+            }
+        }
+    } catch (error) {
+        console.error('Error showing modal:', error);
+    }
+}
+
+function editRecurringTask(taskId) {
+    if (typeof editTask === 'function') {
+        editTask(taskId);
+    } else {
+        console.log('editTask function not available');
+        alert('Edit functionality not available. Please refresh the page and try again.');
+    }
+}
+
+async function deleteRecurringTask(taskId) {
+    if (!confirm('Are you sure you want to delete this recurring task? This will also delete all future occurrences.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/tasks/${taskId}`, {
+            method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            if (typeof showToast === 'function') {
+                showToast('Recurring task deleted successfully', 'success');
+            } else {
+                alert('Recurring task deleted successfully');
+            }
+            loadRecurringTasks(); // Refresh tasks
+        } else {
+            throw new Error(result.error || 'Failed to delete recurring task');
+        }
+    } catch (error) {
+        console.error('Error deleting recurring task:', error);
+        if (typeof showToast === 'function') {
+            showToast('Error deleting recurring task: ' + error.message, 'error');
+        } else {
+            alert('Error deleting recurring task: ' + error.message);
+        }
+    }
+}
+
+function updateRecurringStats() {
+    console.log('Updating recurring stats for', currentRecurringTasks.length, 'tasks');
+
+    const totalRecurring = currentRecurringTasks.length;
+    const activeRecurring = currentRecurringTasks.filter(t => t.status !== 'completed').length;
+    const dailyRecurring = currentRecurringTasks.filter(t => t.recurrence_pattern === 'daily').length;
+    const weeklyRecurring = currentRecurringTasks.filter(t => t.recurrence_pattern === 'weekly').length;
+
+    console.log('Stats:', { totalRecurring, activeRecurring, dailyRecurring, weeklyRecurring });
+
+    const totalEl = document.getElementById('totalRecurringTasks');
+    const activeEl = document.getElementById('activeRecurringTasks');
+    const dailyEl = document.getElementById('dailyRecurringTasks');
+    const weeklyEl = document.getElementById('weeklyRecurringTasks');
+
+    if (totalEl) totalEl.textContent = totalRecurring;
+    if (activeEl) activeEl.textContent = activeRecurring;
+    if (dailyEl) dailyEl.textContent = dailyRecurring;
+    if (weeklyEl) weeklyEl.textContent = weeklyRecurring;
+
+    console.log('Stats updated successfully');
+}
+
+function generateUpcomingOccurrences() {
+    console.log('Generating upcoming occurrences...');
+    const container = document.getElementById('upcomingOccurrences');
+
+    if (!container) {
+        console.error('upcomingOccurrences container not found');
+        return;
+    }
+
+    const upcomingTasks = [];
+    const today = new Date();
+
+    // Generate next 7 days of occurrences for each recurring task
+    currentRecurringTasks.forEach(task => {
+        if (task.status === 'completed') return;
+
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+
+            if (shouldTaskOccurOnDate(task, date)) {
+                upcomingTasks.push({
+                    ...task,
+                    occurrence_date: date
+                });
+            }
+        }
+    });
+
+    // Sort by date
+    upcomingTasks.sort((a, b) => a.occurrence_date - b.occurrence_date);
+    console.log('Found', upcomingTasks.length, 'upcoming occurrences');
+
+    if (upcomingTasks.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center">No upcoming occurrences in the next 7 days.</p>';
+        return;
+    }
+
+    const priorityNames = { 1: 'Low', 2: 'Medium', 3: 'High', 4: 'Critical' };
+    const priorityColors = { 1: '#95a5a6', 2: '#f39c12', 3: '#e74c3c', 4: '#8e44ad' };
+
+    const escapeHtml = (text) => {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    };
+
+    container.innerHTML = upcomingTasks.slice(0, 10).map(task => {
+        const priorityName = priorityNames[task.priority_id] || 'Medium';
+        const priorityColor = priorityColors[task.priority_id] || '#f39c12';
+
+        return `
+            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                <div>
+                    <strong>${escapeHtml(task.title)}</strong>
+                    <div class="small text-muted">${formatRecurrencePattern(task.recurrence_pattern, task.recurrence_interval)}</div>
+                </div>
+                <div class="text-end">
+                    <div class="small">${task.occurrence_date.toLocaleDateString()}</div>
+                    <span class="badge" style="background-color: ${priorityColor};">${priorityName}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    console.log('Upcoming occurrences rendered');
+}
+
+function shouldTaskOccurOnDate(task, date) {
+    // Simple logic - in a real implementation, this would be more sophisticated
+    // based on the task's creation date and recurrence pattern
+    const dayOfWeek = date.getDay();
+    const dayOfMonth = date.getDate();
+
+    switch (task.recurrence_pattern) {
+        case 'daily':
+            return true;
+        case 'weekly':
+            return dayOfWeek === 1; // Mondays for example
+        case 'monthly':
+            return dayOfMonth === 1; // First of month for example
+        case 'yearly':
+            return dayOfMonth === 1 && date.getMonth() === 0; // January 1st for example
+        default:
+            return false;
+    }
+}
+
+// Filter functions
+function applyRecurringFilters() {
+    currentFilters.pattern = document.getElementById('patternFilter').value;
+    currentFilters.status = document.getElementById('statusFilter').value;
+    currentFilters.category = document.getElementById('categoryFilter').value;
+
+    renderRecurringTasks(currentRecurringTasks);
+}
+
+function applyRecurringCurrentFilters(tasks) {
+    return tasks.filter(task => {
+        if (currentFilters.pattern && task.recurrence_pattern !== currentFilters.pattern) return false;
+        if (currentFilters.status && task.status !== currentFilters.status) return false;
+        if (currentFilters.category && task.category_id != currentFilters.category) return false;
+        return true;
+    });
+}
+
+function clearRecurringFilters() {
+    document.getElementById('patternFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('categoryFilter').value = '';
+
+    currentFilters = { pattern: '', status: '', category: '' };
+    renderRecurringTasks(currentRecurringTasks);
+}
+
+function showRecurringLoading(show) {
+    const spinner = document.getElementById('loadingSpinner');
+    const container = document.getElementById('recurringTasksContainer');
+
+    if (spinner) {
+        spinner.style.display = show ? 'block' : 'none';
+    }
+    if (container) {
+        container.style.display = show ? 'none' : 'block';
+    }
+}
+</script>
+
+<style>
+.recurring-task-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.recurring-task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.priority-low { border-left: 4px solid var(--bs-info); }
+.priority-medium { border-left: 4px solid var(--bs-warning); }
+.priority-high { border-left: 4px solid var(--bs-danger); }
+.priority-critical { border-left: 4px solid var(--bs-dark); }
+</style>
+{% endblock %}

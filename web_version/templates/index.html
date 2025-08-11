@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Task Planner Web - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Sidebar -->
+    <div class="col-lg-3 col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-speedometer2"></i> Quick Stats
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center" id="quickStats">
+                    <div class="col-6 mb-3">
+                        <div class="stat-item">
+                            <div class="stat-number text-primary" id="totalTasks">0</div>
+                            <div class="stat-label">Total Tasks</div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stat-item">
+                            <div class="stat-number text-success" id="completedTasks">0</div>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stat-item">
+                            <div class="stat-number text-warning" id="pendingTasks">0</div>
+                            <div class="stat-label">Pending</div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stat-item">
+                            <div class="stat-number text-danger" id="overdueTasks">0</div>
+                            <div class="stat-label">Overdue</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress mb-3">
+                    <div class="progress-bar bg-success" role="progressbar" id="completionProgress" style="width: 0%">
+                        <span id="completionRate">0%</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary w-100 mb-2" id="addTaskBtn">
+                    <i class="bi bi-plus-circle"></i> Add New Task
+                </button>
+
+                <button class="btn btn-outline-primary w-100" onclick="location.href='/dashboard'">
+                    <i class="bi bi-bar-chart"></i> View Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-lg-9 col-md-8">
+        <!-- Filter Bar -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <select class="form-select" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="categoryFilter">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="priorityFilter">
+                            <option value="">All Priorities</option>
+                            <option value="1">Low</option>
+                            <option value="2">Medium</option>
+                            <option value="3">High</option>
+                            <option value="4">Critical</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-secondary w-100" id="clearFilters">
+                            <i class="bi bi-x-circle"></i> Clear Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks List -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-list-task"></i> Tasks
+                </h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="listViewBtn">
+                        <i class="bi bi-list"></i> List
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="gridViewBtn">
+                        <i class="bi bi-grid"></i> Grid
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading tasks...</span>
+                    </div>
+                    <div class="mt-2">Loading tasks...</div>
+                </div>
+
+                <!-- Tasks Container -->
+                <div id="tasksContainer" style="display: none;">
+                    <!-- Tasks will be dynamically loaded here -->
+                </div>
+
+                <!-- Pagination Container -->
+                <div id="paginationContainer">
+                    <!-- Pagination will be dynamically loaded here -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="text-center py-5" style="display: none;">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h4 class="text-muted mt-3">No tasks found</h4>
+                    <p class="text-muted">Create your first task to get started!</p>
+                    <button class="btn btn-primary" id="addFirstTaskBtn">
+                        <i class="bi bi-plus-circle"></i> Add Your First Task
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Templates -->
+<div class="row mt-4" id="taskTemplates" style="display: none;">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clipboard-check"></i> Quick Task Templates
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-outline-primary w-100 template-btn" data-template="email">
+                            📧 Email Task
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-outline-primary w-100 template-btn" data-template="meeting">
+                            📝 Meeting Prep
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-outline-primary w-100 template-btn" data-template="call">
+                            📞 Phone Call
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-outline-primary w-100 template-btn" data-template="shopping">
+                            🛒 Shopping List
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Task templates data
+const taskTemplates = {
+    email: {
+        title: "Send email to [recipient]",
+        description: "Draft and send email regarding [subject]",
+        estimated_duration: 15
+    },
+    meeting: {
+        title: "Prepare for [meeting name]",
+        description: "Review agenda, prepare materials, and set up meeting room",
+        estimated_duration: 30
+    },
+    call: {
+        title: "Call [contact name]",
+        description: "Phone call regarding [topic]",
+        estimated_duration: 20
+    },
+    shopping: {
+        title: "Shopping: [items]",
+        description: "Buy groceries and household items",
+        estimated_duration: 60
+    }
+};
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    loadTasks();
+    loadCategories();
+    loadAnalytics();
+
+    // Show templates after initial load
+    setTimeout(() => {
+        document.getElementById('taskTemplates').style.display = 'block';
+    }, 1000);
+});
+
+// Template button handlers
+document.querySelectorAll('.template-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const templateKey = this.dataset.template;
+        const template = taskTemplates[templateKey];
+
+        if (template) {
+            // Pre-fill task modal with template data
+            document.getElementById('taskTitle').value = template.title;
+            document.getElementById('taskDescription').value = template.description;
+            document.getElementById('taskDuration').value = template.estimated_duration;
+
+            // Show task modal
+            const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
+            taskModal.show();
+        }
+    });
+});
+
+// Set default view
+document.getElementById('listViewBtn').classList.add('active');
+</script>
+{% endblock %}

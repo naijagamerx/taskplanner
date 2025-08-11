@@ -1,0 +1,29 @@
+{
+  "licenses": [
+    {
+      "id": 8,
+      "license_key": "FA5B-EB8D-F17D-DAFC",
+      "hardware_id": "688CC1F9D79BD0028763D10034F2DB9D",
+      "license_type": "basic",
+      "user_name": "Lucas Onks",
+      "issued_at": "2025-05-28T15:03:22.570788",
+      "expires_at": "2025-06-27T15:03:22.570788",
+      "status": "active",
+      "generated_by": "admin",
+      "generated_at": "2025-05-28T15:03:22.571805"
+    },
+    {
+      "id": 11,
+      "license_key": "1EF0-E694-D5C1-5C18",
+      "hardware_id": "2446786204B5286621A9576FF8E39877",
+      "license_type": "basic",
+      "user_name": "Mike",
+      "issued_at": "2025-05-28T15:22:04.772662",
+      "expires_at": "2025-06-04T15:22:04.772662",
+      "status": "active",
+      "generated_by": "admin",
+      "generated_at": "2025-05-28T15:22:04.772765"
+    }
+  ],
+  "next_id": 12
+}

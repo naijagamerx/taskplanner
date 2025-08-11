@@ -1,0 +1,31 @@
+# Task Planner - Installation Instructions
+
+## Countdown Notifications Fixed! 🎉
+
+This version includes the complete fix for countdown notifications:
+- ✅ Notifications at 15, 14, 13, 12, 11... minutes before due time
+- ✅ Persistent background monitoring (works when window closed)
+- ✅ Reliable notification delivery with auto-restart
+- ✅ All dependencies included in executable
+
+## Installation:
+
+1. Extract all files to a folder (e.g., C:\TaskPlanner\)
+2. Run TaskPlanner.exe
+3. The app will create necessary data files on first run
+4. Configure your database settings in Settings menu
+
+## Features:
+- ✅ Countdown notifications every minute (15 down to 1)
+- ✅ Works even when app window is closed
+- ✅ Professional licensing system
+- ✅ MySQL and SQLite database support
+- ✅ Enhanced UI with dark mode
+- ✅ Analytics and reporting
+- ✅ Task templates and smart notifications
+
+## Notification Testing:
+Create a task due in 16 minutes and you'll receive notifications at:
+15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 minutes before due time!
+
+Enjoy your perfectly working countdown notifications! 🔔

@@ -1,0 +1,7 @@
+mysql-connector-python==8.2.0
+customtkinter==5.2.0
+tkcalendar==1.6.1
+matplotlib==3.7.2
+Pillow==10.0.0
+python-dateutil==2.8.2
+PyInstaller==6.0.0

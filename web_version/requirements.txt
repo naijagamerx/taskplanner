@@ -1,0 +1,16 @@
+# Task Planner Web Version Requirements
+# Install with: pip install -r requirements.txt
+
+# Core Web Framework
+Flask==3.0.0
+Flask-CORS==4.0.0
+
+# Database connectors
+mysql-connector-python==8.1.0
+
+# Optional: For production deployment
+gunicorn==21.2.0
+waitress==2.1.2
+
+# Development tools (optional)
+python-dotenv==1.0.0

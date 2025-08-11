@@ -1,0 +1,672 @@
+{% extends "base.html" %}
+
+{% block title %}Task Planner Web - Calendar{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="bi bi-calendar3"></i> Calendar</h2>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary" id="monthViewBtn">Month</button>
+                <button type="button" class="btn btn-outline-primary" id="weekViewBtn">Week</button>
+                <button type="button" class="btn btn-outline-primary" id="dayViewBtn">Day</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Navigation -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-outline-secondary" id="prevPeriod">
+                        <i class="bi bi-chevron-left"></i> Previous
+                    </button>
+                    <h4 id="currentPeriod" class="mb-0">Loading...</h4>
+                    <button class="btn btn-outline-secondary" id="nextPeriod">
+                        Next <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="text-center mt-2">
+                    <button class="btn btn-primary btn-sm" id="todayBtn">Today</button>
+                    <button class="btn btn-success btn-sm ms-2" id="addTaskForDateBtn">
+                        <i class="bi bi-plus-circle"></i> Add Task for Selected Date
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Container -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div id="calendarContainer">
+                    <!-- Calendar will be dynamically loaded here -->
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading calendar...</span>
+                        </div>
+                        <p class="mt-2">Loading calendar data...</p>
+                        <button class="btn btn-outline-primary btn-sm" onclick="manualLoadCalendar()">
+                            <i class="bi bi-arrow-clockwise"></i> Manual Load
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Details Modal -->
+<div class="modal fade" id="taskDetailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Task Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="taskDetailsContent">
+                <!-- Task details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="editTaskFromCalendar">Edit Task</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Calendar variables
+let currentView = 'month';
+let currentDate = new Date();
+let selectedDate = null;
+let calendarTasks = [];
+
+// Manual load function for debugging
+function manualLoadCalendar() {
+    console.log('🔧 Manual calendar load triggered');
+    const container = document.getElementById('calendarContainer');
+
+    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2">Loading...</p></div>';
+
+    fetch('/api/tasks')
+        .then(response => {
+            console.log('📡 API Response:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('📊 Tasks data:', data);
+            calendarTasks = data.tasks || [];
+
+            // Simple calendar render
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+
+            let html = `
+                <div class="calendar-month">
+                    <h4 class="text-center mb-3">${today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h4>
+                    <div class="calendar-header">
+                        <div class="calendar-day-header">Sun</div>
+                        <div class="calendar-day-header">Mon</div>
+                        <div class="calendar-day-header">Tue</div>
+                        <div class="calendar-day-header">Wed</div>
+                        <div class="calendar-day-header">Thu</div>
+                        <div class="calendar-day-header">Fri</div>
+                        <div class="calendar-day-header">Sat</div>
+                    </div>
+                    <div class="calendar-grid">
+            `;
+
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                html += '<div class="calendar-day empty"></div>';
+            }
+
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateStr = date.toISOString().split('T')[0];
+                const dayTasks = calendarTasks.filter(task => task.due_date === dateStr);
+                const isToday = date.toDateString() === new Date().toDateString();
+
+                html += `
+                    <div class="calendar-day ${isToday ? 'today' : ''}" data-date="${dateStr}">
+                        <div class="day-number">${day}</div>
+                        <div class="day-tasks">
+                            ${dayTasks.slice(0, 3).map(task => `
+                                <div class="task-indicator priority-${task.priority_id || 2}" title="${task.title || 'Untitled'}">
+                                    ${(task.title || 'Untitled').substring(0, 15)}${(task.title || '').length > 15 ? '...' : ''}
+                                </div>
+                            `).join('')}
+                            ${dayTasks.length > 3 ? `<div class="more-tasks">+${dayTasks.length - 3} more</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div></div>';
+
+            if (calendarTasks.length === 0) {
+                html += `
+                    <div class="alert alert-info mt-3 text-center">
+                        <i class="bi bi-info-circle"></i> No tasks found.
+                        <a href="/" class="alert-link">Add your first task</a> to see it on the calendar.
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="alert alert-success mt-3 text-center">
+                        <i class="bi bi-check-circle"></i> Found ${calendarTasks.length} task(s) in your calendar.
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+
+            // Update period label
+            const periodLabel = document.getElementById('currentPeriod');
+            if (periodLabel) {
+                periodLabel.textContent = today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            }
+
+        })
+        .catch(error => {
+            console.error('❌ Error loading calendar:', error);
+            container.innerHTML = `
+                <div class="alert alert-danger text-center">
+                    <h5><i class="bi bi-exclamation-triangle"></i> Error Loading Calendar</h5>
+                    <p>Failed to load calendar data: ${error.message}</p>
+                    <button class="btn btn-outline-danger" onclick="manualLoadCalendar()">
+                        <i class="bi bi-arrow-clockwise"></i> Retry
+                    </button>
+                </div>
+            `;
+        });
+}
+
+// Initialize calendar
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🗓️ Calendar page loaded, initializing...');
+    try {
+        initializeCalendar();
+        setupCalendarEventListeners();
+        loadCalendarData();
+    } catch (error) {
+        console.error('❌ Calendar initialization failed:', error);
+        const container = document.getElementById('calendarContainer');
+        if (container) {
+            container.innerHTML = `
+                <div class="alert alert-danger">
+                    <h5>Calendar Initialization Error</h5>
+                    <p>Failed to initialize calendar: ${error.message}</p>
+                    <button class="btn btn-primary" onclick="location.reload()">Reload Page</button>
+                </div>
+            `;
+        }
+    }
+});
+
+function initializeCalendar() {
+    console.log('📅 Initializing calendar...');
+
+    // Set default view
+    const monthBtn = document.getElementById('monthViewBtn');
+    if (monthBtn) {
+        monthBtn.classList.add('active');
+    } else {
+        console.warn('Month view button not found');
+    }
+
+    updatePeriodLabel();
+    console.log('✅ Calendar initialized');
+}
+
+function setupCalendarEventListeners() {
+    console.log('🔗 Setting up calendar event listeners...');
+
+    // Helper function to safely add event listener
+    function safeAddEventListener(elementId, event, handler, description) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.addEventListener(event, handler);
+            console.log(`✅ ${description} listener added`);
+        } else {
+            console.warn(`⚠️ Element ${elementId} not found for ${description}`);
+        }
+    }
+
+    // View buttons
+    safeAddEventListener('monthViewBtn', 'click', () => switchCalendarView('month'), 'Month view');
+    safeAddEventListener('weekViewBtn', 'click', () => switchCalendarView('week'), 'Week view');
+    safeAddEventListener('dayViewBtn', 'click', () => switchCalendarView('day'), 'Day view');
+
+    // Navigation buttons
+    safeAddEventListener('prevPeriod', 'click', navigatePrevious, 'Previous period');
+    safeAddEventListener('nextPeriod', 'click', navigateNext, 'Next period');
+    safeAddEventListener('todayBtn', 'click', goToToday, 'Today button');
+
+    // Add task button
+    safeAddEventListener('addTaskForDateBtn', 'click', addTaskForSelectedDate, 'Add task for date');
+
+    console.log('✅ Calendar event listeners setup complete');
+}
+
+function switchCalendarView(view) {
+    currentView = view;
+
+    // Update button states
+    document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(view + 'ViewBtn').classList.add('active');
+
+    updatePeriodLabel();
+    renderCalendar();
+}
+
+function navigatePrevious() {
+    if (currentView === 'month') {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+    } else if (currentView === 'week') {
+        currentDate.setDate(currentDate.getDate() - 7);
+    } else if (currentView === 'day') {
+        currentDate.setDate(currentDate.getDate() - 1);
+    }
+    updatePeriodLabel();
+    renderCalendar();
+}
+
+function navigateNext() {
+    if (currentView === 'month') {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+    } else if (currentView === 'week') {
+        currentDate.setDate(currentDate.getDate() + 7);
+    } else if (currentView === 'day') {
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    updatePeriodLabel();
+    renderCalendar();
+}
+
+function goToToday() {
+    currentDate = new Date();
+    updatePeriodLabel();
+    renderCalendar();
+}
+
+function updatePeriodLabel() {
+    const periodLabel = document.getElementById('currentPeriod');
+
+    if (currentView === 'month') {
+        periodLabel.textContent = currentDate.toLocaleDateString('en-US', {
+            month: 'long',
+            year: 'numeric'
+        });
+    } else if (currentView === 'week') {
+        const startOfWeek = new Date(currentDate);
+        startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+        periodLabel.textContent = `${startOfWeek.toLocaleDateString()} - ${endOfWeek.toLocaleDateString()}`;
+    } else if (currentView === 'day') {
+        periodLabel.textContent = currentDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    }
+}
+
+async function loadCalendarData() {
+    try {
+        console.log('Loading calendar data...');
+        const response = await fetch('/api/tasks');
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Calendar data loaded:', data);
+
+        calendarTasks = data.tasks || [];
+        renderCalendar();
+
+        // Update period label after successful load
+        updatePeriodLabel();
+
+    } catch (error) {
+        console.error('Error loading calendar data:', error);
+
+        // Show error in calendar container
+        const container = document.getElementById('calendarContainer');
+        container.innerHTML = `
+            <div class="alert alert-danger text-center">
+                <h5><i class="bi bi-exclamation-triangle"></i> Error Loading Calendar</h5>
+                <p>Failed to load calendar data: ${error.message}</p>
+                <button class="btn btn-outline-danger" onclick="loadCalendarData()">
+                    <i class="bi bi-arrow-clockwise"></i> Retry
+                </button>
+            </div>
+        `;
+
+        // Also try to show toast if function exists
+        if (typeof showToast === 'function') {
+            showToast('Error loading calendar data', 'error');
+        }
+    }
+}
+
+function renderCalendar() {
+    const container = document.getElementById('calendarContainer');
+
+    if (currentView === 'month') {
+        renderMonthView(container);
+    } else if (currentView === 'week') {
+        renderWeekView(container);
+    } else if (currentView === 'day') {
+        renderDayView(container);
+    }
+}
+
+function renderMonthView(container) {
+    try {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        console.log(`Rendering month view for ${year}-${month + 1}, tasks:`, calendarTasks.length);
+
+        // Get first day of month and number of days
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDayOfWeek = firstDay.getDay();
+
+        let html = `
+            <div class="calendar-month">
+                <div class="calendar-header">
+                    <div class="calendar-day-header">Sun</div>
+                    <div class="calendar-day-header">Mon</div>
+                    <div class="calendar-day-header">Tue</div>
+                    <div class="calendar-day-header">Wed</div>
+                    <div class="calendar-day-header">Thu</div>
+                    <div class="calendar-day-header">Fri</div>
+                    <div class="calendar-day-header">Sat</div>
+                </div>
+                <div class="calendar-grid">
+        `;
+
+        // Add empty cells for days before the first day of the month
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            html += '<div class="calendar-day empty"></div>';
+        }
+
+        // Add days of the month
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const dateStr = date.toISOString().split('T')[0];
+            const dayTasks = (calendarTasks || []).filter(task => task.due_date === dateStr);
+            const isToday = date.toDateString() === new Date().toDateString();
+            const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
+
+            html += `
+                <div class="calendar-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}"
+                     data-date="${dateStr}" onclick="selectDate('${dateStr}')">
+                    <div class="day-number">${day}</div>
+                    <div class="day-tasks">
+                        ${dayTasks.slice(0, 3).map(task => `
+                            <div class="task-indicator priority-${task.priority_id || 2}"
+                                 onclick="showTaskDetails(${task.id}); event.stopPropagation();"
+                                 title="${escapeHtml(task.title || 'Untitled Task')}">
+                                ${escapeHtml((task.title || 'Untitled').substring(0, 15))}${(task.title || '').length > 15 ? '...' : ''}
+                            </div>
+                        `).join('')}
+                        ${dayTasks.length > 3 ? `<div class="more-tasks">+${dayTasks.length - 3} more</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        html += '</div></div>';
+
+        // Show message if no tasks
+        if (!calendarTasks || calendarTasks.length === 0) {
+            html += `
+                <div class="alert alert-info mt-3 text-center">
+                    <i class="bi bi-info-circle"></i> No tasks found.
+                    <a href="/" class="alert-link">Add your first task</a> to see it on the calendar.
+                </div>
+            `;
+        }
+
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error('Error rendering month view:', error);
+        container.innerHTML = `
+            <div class="alert alert-danger">
+                <h6>Error rendering calendar</h6>
+                <p>${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function renderWeekView(container) {
+    // Week view implementation
+    container.innerHTML = '<div class="text-center py-5"><h5>Week View - Coming Soon</h5></div>';
+}
+
+function renderDayView(container) {
+    // Day view implementation
+    container.innerHTML = '<div class="text-center py-5"><h5>Day View - Coming Soon</h5></div>';
+}
+
+function selectDate(dateStr) {
+    selectedDate = new Date(dateStr);
+    renderCalendar();
+}
+
+function addTaskForSelectedDate() {
+    if (!selectedDate) {
+        alert('Please select a date first');
+        return;
+    }
+
+    // Pre-fill the due date in the task modal
+    const taskDueDateField = document.getElementById('taskDueDate');
+    if (taskDueDateField) {
+        taskDueDateField.value = selectedDate.toISOString().split('T')[0];
+    }
+
+    // Show the task modal
+    showAddTaskModal();
+}
+
+function showAddTaskModal() {
+    // Try to use the main app's function if available
+    if (typeof window.showAddTaskModal === 'function') {
+        window.showAddTaskModal();
+        return;
+    }
+
+    // Fallback: try to show the modal directly
+    const taskModal = document.getElementById('taskModal');
+    if (taskModal) {
+        const modal = new bootstrap.Modal(taskModal);
+        modal.show();
+    } else {
+        // If no modal available, redirect to home page
+        window.location.href = '/?add_task=true&date=' + (selectedDate ? selectedDate.toISOString().split('T')[0] : '');
+    }
+}
+
+function showTaskDetails(taskId) {
+    const task = calendarTasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const content = document.getElementById('taskDetailsContent');
+    content.innerHTML = `
+        <div class="task-details">
+            <h6>${task.title}</h6>
+            ${task.description ? `<p class="text-muted">${task.description}</p>` : ''}
+            <div class="task-meta">
+                <span class="badge priority-${task.priority_id}">${task.priority_name || 'Medium'}</span>
+                <span class="badge status-${task.status}">${task.status}</span>
+                ${task.category_name ? `<span class="badge bg-secondary">${task.category_name}</span>` : ''}
+            </div>
+            ${task.due_date ? `<p class="mt-2"><i class="bi bi-calendar"></i> Due: ${new Date(task.due_date).toLocaleDateString()}</p>` : ''}
+            ${task.estimated_duration ? `<p><i class="bi bi-clock"></i> Estimated: ${task.estimated_duration} minutes</p>` : ''}
+        </div>
+    `;
+
+    // Store task ID for editing
+    document.getElementById('editTaskFromCalendar').dataset.taskId = taskId;
+
+    const modal = new bootstrap.Modal(document.getElementById('taskDetailsModal'));
+    modal.show();
+}
+
+// Edit task from calendar
+document.getElementById('editTaskFromCalendar').addEventListener('click', function() {
+    const taskId = parseInt(this.dataset.taskId);
+    if (taskId) {
+        // Hide task details modal
+        const detailsModal = bootstrap.Modal.getInstance(document.getElementById('taskDetailsModal'));
+        if (detailsModal) {
+            detailsModal.hide();
+        }
+
+        // Show edit task modal
+        if (typeof window.editTask === 'function') {
+            window.editTask(taskId);
+        } else {
+            // Fallback: redirect to home page with edit parameter
+            window.location.href = '/?edit_task=' + taskId;
+        }
+    }
+});
+
+// Add helper function to format dates
+function formatDateForDisplay(dateStr) {
+    if (!dateStr) return '';
+    try {
+        return new Date(dateStr).toLocaleDateString();
+    } catch (e) {
+        return dateStr;
+    }
+}
+</script>
+
+<style>
+.calendar-month {
+    width: 100%;
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: var(--bs-border-color);
+    margin-bottom: 1px;
+}
+
+.calendar-day-header {
+    background-color: var(--bs-primary);
+    color: white;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: var(--bs-border-color);
+}
+
+.calendar-day {
+    background-color: var(--bs-body-bg);
+    min-height: 120px;
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.calendar-day:hover {
+    background-color: var(--bs-light);
+}
+
+.calendar-day.today {
+    background-color: var(--bs-primary-bg-subtle);
+    border: 2px solid var(--bs-primary);
+}
+
+.calendar-day.selected {
+    background-color: var(--bs-success-bg-subtle);
+    border: 2px solid var(--bs-success);
+}
+
+.calendar-day.empty {
+    background-color: var(--bs-secondary-bg);
+    cursor: default;
+}
+
+.day-number {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.task-indicator {
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    margin: 1px 0;
+    border-radius: 3px;
+    background-color: var(--bs-secondary);
+    color: white;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.task-indicator:hover {
+    opacity: 0.8;
+}
+
+.task-indicator.priority-1 { background-color: var(--bs-info); }
+.task-indicator.priority-2 { background-color: var(--bs-warning); }
+.task-indicator.priority-3 { background-color: var(--bs-danger); }
+.task-indicator.priority-4 { background-color: var(--bs-dark); }
+
+.more-tasks {
+    font-size: 0.7rem;
+    color: var(--bs-secondary);
+    font-style: italic;
+}
+</style>
+{% endblock %}

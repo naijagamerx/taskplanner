@@ -1,0 +1,27 @@
+# Core database dependencies
+mysql-connector-python==8.2.0
+sqlite3  # Built-in with Python
+
+# GUI dependencies
+customtkinter==5.2.0
+tkcalendar==1.6.1
+Pillow==10.0.0
+
+# Analytics and visualization
+matplotlib==3.7.2
+
+# Date/time handling
+python-dateutil==2.8.2
+
+# Notifications
+plyer==2.1.0
+pygame==2.5.2
+
+# Security and licensing
+cryptography==41.0.7
+
+# Build tools
+PyInstaller==6.0.0
+
+# Additional utilities
+pathlib2==2.3.7; python_version < "3.4"

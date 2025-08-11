@@ -1,0 +1,492 @@
+{% extends "base.html" %}
+
+{% block title %}Task Planner Web - Dashboard{% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="bi bi-speedometer2"></i> Analytics Dashboard</h2>
+        <p class="text-muted">Track your productivity and task completion patterns</p>
+    </div>
+</div>
+
+<!-- Key Metrics Row -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="dashTotalTasks">0</h4>
+                        <p class="card-text">Total Tasks</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-list-task display-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="dashCompletedTasks">0</h4>
+                        <p class="card-text">Completed</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-check-circle display-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="dashPendingTasks">0</h4>
+                        <p class="card-text">Pending</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-clock display-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="dashCompletionRate">0%</h4>
+                        <p class="card-text">Completion Rate</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-graph-up display-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <!-- Task Status Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-pie-chart"></i> Task Status Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Priority Distribution Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-bar-chart"></i> Priority Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="priorityChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Analysis -->
+<div class="row mb-4">
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-folder"></i> Tasks by Category
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart" width="600" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-activity"></i> Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="recentActivity">
+                    <div class="text-center">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="mt-2 small">Loading activity...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Focus -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-calendar-day"></i> Today's Focus
+                </h5>
+                <span class="badge bg-primary" id="todayTaskCount">0 tasks</span>
+            </div>
+            <div class="card-body">
+                <div id="todayTasks">
+                    <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="mt-2 small">Loading today's tasks...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Productivity Insights -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightbulb"></i> Productivity Insights
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="productivityInsights">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="insight-card p-3 border rounded">
+                                <h6 class="text-primary">📈 Completion Trend</h6>
+                                <p class="mb-0 small" id="completionTrend">Analyzing your completion patterns...</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="insight-card p-3 border rounded">
+                                <h6 class="text-success">🎯 Most Productive Category</h6>
+                                <p class="mb-0 small" id="productiveCategory">Calculating category performance...</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="insight-card p-3 border rounded">
+                                <h6 class="text-warning">⚡ Quick Wins Available</h6>
+                                <p class="mb-0 small" id="quickWins">Finding quick tasks to complete...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let statusChart, priorityChart, categoryChart;
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+    initializeCharts();
+});
+
+function loadDashboardData() {
+    // Load analytics overview
+    fetch('/api/analytics/overview')
+        .then(response => response.json())
+        .then(data => {
+            updateDashboardMetrics(data);
+            updateProductivityInsights(data);
+        })
+        .catch(error => {
+            console.error('Error loading dashboard data:', error);
+            showToast('Error loading dashboard data', 'error');
+        });
+    
+    // Load tasks for charts
+    fetch('/api/tasks')
+        .then(response => response.json())
+        .then(data => {
+            updateCharts(data.tasks);
+            updateTodayTasks(data.tasks);
+            updateRecentActivity(data.tasks);
+        })
+        .catch(error => {
+            console.error('Error loading tasks:', error);
+        });
+}
+
+function updateDashboardMetrics(data) {
+    document.getElementById('dashTotalTasks').textContent = data.total_tasks || 0;
+    document.getElementById('dashCompletedTasks').textContent = data.completed_tasks || 0;
+    document.getElementById('dashPendingTasks').textContent = data.pending_tasks || 0;
+    document.getElementById('dashCompletionRate').textContent = (data.completion_rate || 0) + '%';
+}
+
+function initializeCharts() {
+    // Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    statusChart = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pending', 'In Progress', 'Completed'],
+            datasets: [{
+                data: [0, 0, 0],
+                backgroundColor: ['#ffc107', '#17a2b8', '#28a745'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Priority Chart
+    const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+    priorityChart = new Chart(priorityCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Low', 'Medium', 'High', 'Critical'],
+            datasets: [{
+                label: 'Tasks',
+                data: [0, 0, 0, 0],
+                backgroundColor: ['#6c757d', '#007bff', '#fd7e14', '#dc3545'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Category Chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    categoryChart = new Chart(categoryCtx, {
+        type: 'horizontalBar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Tasks',
+                data: [],
+                backgroundColor: '#007bff',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+function updateCharts(tasks) {
+    // Update status chart
+    const statusCounts = {
+        pending: tasks.filter(t => t.status === 'pending').length,
+        in_progress: tasks.filter(t => t.status === 'in_progress').length,
+        completed: tasks.filter(t => t.status === 'completed').length
+    };
+    
+    statusChart.data.datasets[0].data = [
+        statusCounts.pending,
+        statusCounts.in_progress,
+        statusCounts.completed
+    ];
+    statusChart.update();
+
+    // Update priority chart
+    const priorityCounts = [1, 2, 3, 4].map(p => 
+        tasks.filter(t => t.priority_id === p).length
+    );
+    
+    priorityChart.data.datasets[0].data = priorityCounts;
+    priorityChart.update();
+
+    // Update category chart (will need categories data)
+    fetch('/api/categories')
+        .then(response => response.json())
+        .then(data => {
+            const categories = data.categories || [];
+            const categoryData = categories.map(cat => ({
+                name: cat.name,
+                count: tasks.filter(t => t.category_id === cat.id).length
+            })).filter(c => c.count > 0);
+
+            categoryChart.data.labels = categoryData.map(c => c.name);
+            categoryChart.data.datasets[0].data = categoryData.map(c => c.count);
+            categoryChart.update();
+        });
+}
+
+function updateTodayTasks(tasks) {
+    const today = new Date().toISOString().split('T')[0];
+    const todayTasks = tasks.filter(t => t.due_date === today);
+    
+    document.getElementById('todayTaskCount').textContent = `${todayTasks.length} tasks`;
+    
+    const container = document.getElementById('todayTasks');
+    if (todayTasks.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center">No tasks due today. Great job staying on top of things!</p>';
+    } else {
+        container.innerHTML = todayTasks.map(task => `
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                <div>
+                    <strong>${task.title}</strong>
+                    <div class="small text-muted">${task.description || 'No description'}</div>
+                </div>
+                <span class="badge bg-${getStatusColor(task.status)}">${task.status}</span>
+            </div>
+        `).join('');
+    }
+}
+
+function updateRecentActivity(tasks) {
+    // Show recently created or completed tasks
+    const recentTasks = tasks
+        .filter(t => t.created_at || t.completed_at)
+        .sort((a, b) => {
+            const dateA = new Date(a.completed_at || a.created_at);
+            const dateB = new Date(b.completed_at || b.created_at);
+            return dateB - dateA;
+        })
+        .slice(0, 5);
+
+    const container = document.getElementById('recentActivity');
+    if (recentTasks.length === 0) {
+        container.innerHTML = '<p class="text-muted small">No recent activity</p>';
+    } else {
+        container.innerHTML = recentTasks.map(task => {
+            const isCompleted = task.status === 'completed';
+            const date = new Date(task.completed_at || task.created_at);
+            const timeAgo = getTimeAgo(date);
+            
+            return `
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-${isCompleted ? 'check-circle text-success' : 'plus-circle text-primary'} me-2"></i>
+                    <div class="flex-grow-1">
+                        <div class="small">${task.title}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">
+                            ${isCompleted ? 'Completed' : 'Created'} ${timeAgo}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+function updateProductivityInsights(data) {
+    // Completion trend
+    const completionRate = data.completion_rate || 0;
+    let trendText = 'Keep up the good work!';
+    if (completionRate >= 80) {
+        trendText = 'Excellent! You\'re highly productive.';
+    } else if (completionRate >= 60) {
+        trendText = 'Good progress! Room for improvement.';
+    } else if (completionRate >= 40) {
+        trendText = 'Making progress. Consider prioritizing tasks.';
+    } else {
+        trendText = 'Focus on completing existing tasks first.';
+    }
+    document.getElementById('completionTrend').textContent = trendText;
+
+    // Quick wins
+    const pendingTasks = data.pending_tasks || 0;
+    let quickWinsText = 'No pending tasks - you\'re all caught up!';
+    if (pendingTasks > 0) {
+        quickWinsText = `${pendingTasks} pending tasks available for completion.`;
+    }
+    document.getElementById('quickWins').textContent = quickWinsText;
+}
+
+function getStatusColor(status) {
+    switch (status) {
+        case 'completed': return 'success';
+        case 'in_progress': return 'info';
+        case 'pending': return 'warning';
+        default: return 'secondary';
+    }
+}
+
+function getTimeAgo(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+}
+
+// Refresh dashboard every 5 minutes
+setInterval(loadDashboardData, 5 * 60 * 1000);
+</script>
+{% endblock %}

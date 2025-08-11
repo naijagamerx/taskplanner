@@ -1,0 +1,10 @@
+{
+  "theme": "dark",
+  "color_theme": "green",
+  "font_size": "15",
+  "default_reminder_time": "15",
+  "work_hours_start": "09:00",
+  "work_hours_end": "17:00",
+  "date_format": "%Y-%m-%d",
+  "autosave_interval": "5"
+}

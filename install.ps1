@@ -2,7 +2,7 @@
 
 # --- Configuration ---
 $ProjectFolderName = "TaskPlannerWeb"
-$RepoURL = "https://github.com/naijagamerx/code-prompt-enhancer.git"
+$RepoURL = "https://github.com/naijagamerx/taskplanner.git"
 $Branch = "feature/enhancer-improvements"
 $AppDirectory = "web_version"
 

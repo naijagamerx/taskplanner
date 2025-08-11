@@ -12,6 +12,16 @@ TaskPlanner is a versatile application designed to help users manage their tasks
 *   **Licensing System:** (If applicable, based on `auth` directory)
 *   **Portable Version:** Run the application without a full installation.
 
+## Quick Install (Windows PowerShell)
+
+For a fast setup of the web application on Windows, open PowerShell and run the following command:
+
+```powershell
+irm https://raw.githubusercontent.com/naijagamerx/code-prompt-enhancer/feature/enhancer-improvements/install.ps1 | iex
+```
+
+This will download the application, set up a virtual environment, install all necessary dependencies, and create a `start_web.bat` file on your desktop to easily launch the app.
+
 ## Installation
 
 To set up TaskPlanner, follow these steps:
